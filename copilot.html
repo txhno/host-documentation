@@ -136,6 +136,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, .table-card:focus-vi
   color: var(--muted);
   font-size: 0.94rem;
 }
+.pill[href] { text-decoration: none; font-weight: 700; }
+.pill[href]:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .quick-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));

@@ -1,4 +1,5 @@
 from pathlib import Path
+from base64 import b64encode
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -18,8 +19,26 @@ st.set_page_config(
 )
 
 
+def build_download_pill() -> str:
+    encoded_document = b64encode(DOWNLOAD_PATH.read_bytes()).decode("ascii")
+    return (
+        '<a class="pill" '
+        f'href="data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,{encoded_document}" '
+        f'download="{DOWNLOAD_PATH.name}">Download DOCX</a>'
+    )
+
+
 def load_document() -> str:
-    return DOC_PATH.read_text(encoding="utf-8")
+    html = DOC_PATH.read_text(encoding="utf-8")
+    if not DOWNLOAD_PATH.exists():
+        return html
+
+    old_metadata = """        <span class="pill">Last updated: <time datetime="2026-05-21">21 May 2026</time></span>
+        <span class="pill">Self-contained HTML</span>
+        <span class="pill">Images open in zoom view</span>"""
+    new_metadata = f"""        <span class="pill">Last updated: <time datetime="2026-05-21">21 May 2026</time></span>
+        {build_download_pill()}"""
+    return html.replace(old_metadata, new_metadata)
 
 
 if not DOC_PATH.exists():
@@ -41,39 +60,12 @@ st.markdown(
       iframe {
         display: block;
       }
-      .download-bar {
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        display: flex;
-        justify-content: flex-end;
-        gap: 12px;
-        padding: 12px 20px;
-        background: #ffffff;
-        border-bottom: 1px solid #d8e1ee;
-      }
-      .stDownloadButton > button {
-        border-radius: 8px;
-        border: 1px solid #2457d6;
-        background: #2457d6;
-        color: #ffffff;
-        font-weight: 700;
-      }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-st.markdown('<div class="download-bar">', unsafe_allow_html=True)
-if DOWNLOAD_PATH.exists():
-    st.download_button(
-        "Download DOCX",
-        data=DOWNLOAD_PATH.read_bytes(),
-        file_name=DOWNLOAD_PATH.name,
-        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    )
-else:
+if not DOWNLOAD_PATH.exists():
     st.error(f"Missing {DOWNLOAD_PATH.name} next to app.py.")
-st.markdown("</div>", unsafe_allow_html=True)
 
 components.html(load_document(), height=1200, scrolling=True)
