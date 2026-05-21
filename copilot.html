@@ -572,8 +572,6 @@ operator</a>
 <a class="nav-h1" href="#16-testing-troubleshooting-and-known-risks">16. Testing,
 troubleshooting, and known risks</a>
 <a class="nav-h2" href="#16-1-tests-found-in-repository">16.1 Tests found in repository</a>
-<a class="nav-h2" href="#16-2-known-risks-and-code-smells-from-static-review">16.2 Known risks
-and code smells from static review</a>
 <a class="nav-h2" href="#16-3-practical-troubleshooting-commands">16.3 Practical
 troubleshooting commands</a>
 <a class="nav-h1" href="#17-appendix-glossary">17. Appendix: glossary</a>
@@ -2535,98 +2533,6 @@ enrichment behavior.</p></li>
 variant-specific Standard Size source inference and backfill
 behavior.</p></li>
 </ul>
-<h2 id="16-2-known-risks-and-code-smells-from-static-review">16.2 Known risks
-and code smells from static review<a aria-label="Link to this section" class="heading-anchor" href="#16-2-known-risks-and-code-smells-from-static-review">#</a></h2>
-<div aria-label="Scrollable table" class="table-card" role="region" tabindex="0"><div class="table-scroll"><table class="data-table">
-<colgroup>
-<col style="width: 33%"/>
-<col style="width: 33%"/>
-<col style="width: 33%"/>
-</colgroup>
-<thead>
-<tr class="header">
-<th scope="col"><strong>Risk / issue</strong></th>
-<th scope="col"><strong>Impact</strong></th>
-<th scope="col"><strong>Suggested fix</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Secrets and private credentials appear in repository files and
-compose files.</td>
-<td>Credential leakage, unauthorized usage, production security
-risk.</td>
-<td>Rotate exposed values, remove from git history where appropriate,
-load secrets from env/secret manager.</td>
-</tr>
-<tr class="even">
-<td>security.py compares token to a hard-coded value instead of API_KEY
-env.</td>
-<td>Changing API_KEY env may not affect auth; secret rotation is
-harder.</td>
-<td>Use os.environ.get("API_KEY") or proper secret storage.</td>
-</tr>
-<tr class="odd">
-<td>ratelimiter.py uses a hard-coded external Redis host/password.</td>
-<td>Local compose Redis is bypassed; security and portability risk.</td>
-<td>Use REDIS_URL env and configure per environment.</td>
-</tr>
-<tr class="even">
-<td>docker-compose.yml maps fastapi port 8000:80 while Hypercorn binds
-8000.</td>
-<td>Prod profile may not expose API correctly.</td>
-<td>Use 8000:8000 or bind Hypercorn to 80.</td>
-</tr>
-<tr class="odd">
-<td>Preview route has imagePipeline/castPipeline branches, but
-validation list has marketplaceImageTemplate/castChecks instead.</td>
-<td>Preview calls can be rejected before reaching branch.</td>
-<td>Align operator names across validation, main route, worker, docs,
-and client.</td>
-</tr>
-<tr class="even">
-<td>hintEnrich/enrichImageText are allowed/routed but no active
-implementation was found.</td>
-<td>Requests may create unresolved tasks or 400 behavior.</td>
-<td>Remove legacy names or implement tasks/routes.</td>
-</tr>
-<tr class="odd">
-<td>Assistant() in models.py references client, which was not defined in
-the inspected file.</td>
-<td>predictshopifycategory likely fails at runtime.</td>
-<td>Use OPENAI_DEFAULT_CLIENT or create a correctly named client.</td>
-</tr>
-<tr class="even">
-<td>get_product_id_celery() reads args[0] for detecttaxonomyenrich even
-though product_id is args[1].</td>
-<td>Duplicate-product prevention may not work as intended.</td>
-<td>Read args[1] after confirming Celery arg serialization.</td>
-</tr>
-<tr class="odd">
-<td>getAllTaxonomies() appears to check built-in id instead of
-org_id.</td>
-<td>Missing org_id validation may not fire.</td>
-<td>Change condition to if not org_id.</td>
-</tr>
-<tr class="even">
-<td>Legacy enrich_taxonomy.py references names that may be
-missing/undefined in the file.</td>
-<td>Single enrichTaxonomy may fail depending on code path.</td>
-<td>Prefer bulk shared logic or fix imports/constants/tests.</td>
-</tr>
-<tr class="odd">
-<td>Api_list for client auth/rate limit loaded at import time.</td>
-<td>New client keys/rate limits require app restart.</td>
-<td>Add cache refresh or DB lookup with TTL.</td>
-</tr>
-<tr class="even">
-<td>Large sync preview jobs can block API workers.</td>
-<td>Slow user-facing requests and timeouts.</td>
-<td>Use /api/copilot/ async endpoint for image, bulk, and CAST
-jobs.</td>
-</tr>
-</tbody>
-</table></div></div>
 <h2 id="16-3-practical-troubleshooting-commands">16.3 Practical
 troubleshooting commands<a aria-label="Link to this section" class="heading-anchor" href="#16-3-practical-troubleshooting-commands">#</a></h2>
 <div class="code-card"><div class="code-card-header"><span>Commands</span><button class="copy-code" type="button">Copy</button></div><pre><code># Compose status.
